@@ -79,20 +79,91 @@ const HomePage: React.FC = () => {
     <div className="home-page" style={{ minHeight: '100vh', position: 'relative' }}>
       {/* Farm Background Animation */}
       <div className="farm-background"></div>
+      
+      {/* Animated Farm Elements */}
       <motion.div
         style={{ position: 'absolute', top: '15%', right: '10%', fontSize: '2.5rem', zIndex: 1, cursor: 'pointer' }}
-        whileTap={{ scale: 0.85, rotate: 10 }}
-        whileHover={{ scale: 1.1 }}
-        onClick={(e) => {
-          const el = e.currentTarget;
-          el.animate([
-            { transform: 'translateY(0px)' },
-            { transform: 'translateY(-20px)' },
-            { transform: 'translateY(0px)' }
-          ], { duration: 400, easing: 'ease-in-out' });
+        animate={{ 
+          y: [0, -15, 0],
+          rotate: [0, 5, -5, 0]
         }}
+        transition={{ 
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        whileTap={{ scale: 0.85, rotate: 20 }}
+        whileHover={{ scale: 1.2 }}
       >
         🐥
+      </motion.div>
+      
+      <motion.div
+        style={{ position: 'absolute', top: '25%', left: '8%', fontSize: '2rem', zIndex: 1, cursor: 'pointer' }}
+        animate={{ 
+          rotate: [0, 10, -10, 0],
+          scale: [1, 1.1, 1]
+        }}
+        transition={{ 
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        whileTap={{ scale: 0.9, rotate: 180 }}
+        whileHover={{ scale: 1.3, rotate: 15 }}
+      >
+        🌻
+      </motion.div>
+      
+      <motion.div
+        style={{ position: 'absolute', bottom: '20%', right: '15%', fontSize: '2.2rem', zIndex: 1, cursor: 'pointer' }}
+        animate={{ 
+          y: [0, -10, 0],
+          x: [0, 5, 0]
+        }}
+        transition={{ 
+          duration: 3.5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        whileTap={{ scale: 0.8 }}
+        whileHover={{ scale: 1.2, rotate: -10 }}
+      >
+        🌾
+      </motion.div>
+      
+      <motion.div
+        style={{ position: 'absolute', top: '40%', right: '5%', fontSize: '1.8rem', zIndex: 1, cursor: 'pointer' }}
+        animate={{ 
+          rotate: [0, -5, 5, 0],
+          y: [0, -8, 0]
+        }}
+        transition={{ 
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        whileTap={{ scale: 0.9, y: 20 }}
+        whileHover={{ scale: 1.3 }}
+      >
+        🐔
+      </motion.div>
+      
+      <motion.div
+        style={{ position: 'absolute', bottom: '30%', left: '12%', fontSize: '2rem', zIndex: 1, cursor: 'pointer' }}
+        animate={{ 
+          scale: [1, 1.15, 1],
+          rotate: [0, 8, -8, 0]
+        }}
+        transition={{ 
+          duration: 3.2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        whileTap={{ scale: 0.85, rotate: 360 }}
+        whileHover={{ scale: 1.25 }}
+      >
+        🌻
       </motion.div>
       
       {/* Floating Farm Elements */}

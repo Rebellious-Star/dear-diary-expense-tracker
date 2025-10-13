@@ -58,10 +58,32 @@ body {
   animation: farmFloat 20s ease-in-out infinite;
 }
 
+.farm-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" opacity="0.03"><text x="50" y="100" font-size="80" fill="%238b4513">🌾</text><text x="300" y="200" font-size="60" fill="%239acd32">🐥</text><text x="600" y="150" font-size="70" fill="%23cd5c5c">🌻</text><text x="900" y="250" font-size="65" fill="%23f0e68c">🌾</text><text x="150" y="400" font-size="55" fill="%238b7355">🐔</text><text x="450" y="500" font-size="75" fill="%239acd32">🌻</text><text x="750" y="450" font-size="60" fill="%23cd5c5c">🌾</text><text x="1000" y="550" font-size="70" fill="%23f0e68c">🐥</text><text x="200" y="650" font-size="65" fill="%238b4513">🌻</text><text x="550" y="700" font-size="55" fill="%239acd32">🌾</text><text x="850" y="750" font-size="80" fill="%23cd5c5c">🐔</text></svg>');
+  background-size: cover;
+  background-position: center;
+  animation: floatElements 30s ease-in-out infinite;
+  pointer-events: none;
+}
+
 @keyframes farmFloat {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   33% { transform: translateY(-10px) rotate(1deg); }
   66% { transform: translateY(5px) rotate(-1deg); }
+}
+
+@keyframes floatElements {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-15px) translateX(10px); }
+  50% { transform: translateY(-5px) translateX(-10px); }
+  75% { transform: translateY(-20px) translateX(5px); }
 }
 
 /* Translucent Text Styles */
@@ -89,6 +111,10 @@ body {
   box-shadow: var(--strong-shadow);
 }
 
+.translucent-card:active {
+  transform: translateY(-2px);
+}
+
 /* Button Styles */
 .btn-primary {
   background: linear-gradient(135deg, var(--farm-green) 0%, var(--wheat-gold) 100%);
@@ -101,11 +127,34 @@ body {
   transition: all 0.3s ease;
   box-shadow: var(--soft-shadow);
   font-family: var(--font-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '🌾';
+  position: absolute;
+  top: 50%;
+  left: -30px;
+  transform: translateY(-50%);
+  font-size: 20px;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.btn-primary:hover::before {
+  left: 10px;
+  opacity: 1;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--medium-shadow);
+  padding-left: 40px;
+}
+
+.btn-primary:active {
+  transform: translateY(0px) scale(0.98);
 }
 
 .btn-secondary {
@@ -118,11 +167,35 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary::after {
+  content: '🌻';
+  position: absolute;
+  top: 50%;
+  right: -30px;
+  transform: translateY(-50%) rotate(0deg);
+  font-size: 18px;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.btn-secondary:hover::after {
+  right: 10px;
+  opacity: 1;
+  transform: translateY(-50%) rotate(360deg);
 }
 
 .btn-secondary:hover {
   background: var(--light-brown);
   transform: translateY(-2px);
+  padding-right: 40px;
+}
+
+.btn-secondary:active {
+  transform: translateY(0px) scale(0.98);
 }
 
 /* Input Styles */
@@ -171,6 +244,11 @@ body {
 .nav-link:hover {
   background: rgba(154, 205, 50, 0.2);
   color: var(--dark-brown);
+  transform: translateY(-2px);
+}
+
+.nav-link:active {
+  transform: translateY(0px) scale(0.95);
 }
 
 .nav-link.active {
@@ -217,6 +295,35 @@ body {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Farm element animations */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.wiggle-on-hover:hover {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.pulse-animation {
+  animation: pulse 2s ease-in-out infinite;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .translucent-card {
@@ -248,6 +355,22 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Page transition */
+.page-transition {
+  animation: pageSlideIn 0.5s ease-out;
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Success/Error States */
