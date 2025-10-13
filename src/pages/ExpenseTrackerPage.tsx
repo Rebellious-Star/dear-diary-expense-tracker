@@ -699,6 +699,7 @@ const ExpenseTrackerPage: React.FC = () => {
             }}>
               {Object.entries(categoryTotals).map(([category, total]) => {
                 const categoryInfo = categories.find(cat => cat.name === category);
+                const displayIcon = categoryInfo?.icon || '📦';
                 const percentage = (total / getTotalExpenses()) * 100;
                 
                 return (
@@ -710,7 +711,7 @@ const ExpenseTrackerPage: React.FC = () => {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>
-                        {categoryInfo?.icon}
+                        {displayIcon}
                       </span>
                       <span style={{ fontWeight: 'bold', color: 'var(--accent-brown)' }}>
                         {category}
@@ -866,6 +867,7 @@ const ExpenseTrackerPage: React.FC = () => {
             <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
               {filteredExpenses.map((expense, index) => {
                 const categoryInfo = categories.find(cat => cat.name === expense.category);
+                const displayIcon = categoryInfo?.icon || (expense.type === 'income' ? '💵' : '📦');
                 
                 return (
                   <motion.div
@@ -887,7 +889,7 @@ const ExpenseTrackerPage: React.FC = () => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '1rem' }}>
-                        {categoryInfo?.icon}
+                        {displayIcon}
                       </span>
                       <div>
                         <div style={{ fontWeight: 'bold', color: 'var(--accent-brown)' }}>
