@@ -186,10 +186,10 @@ const ExpenseTrackerPage: React.FC = () => {
     if (expense.type === 'expense') {
       const totalIncome = getTotalIncome();
       const totalExpenses = getTotalExpenses();
-      const newTotal = totalExpenses + expense.amount;
+      const availableBalance = totalIncome - totalExpenses;
       
-      if (newTotal > totalIncome && totalIncome > 0) {
-        // Show dialog to ask if it's a loan or other
+      if (expense.amount > availableBalance && totalIncome > 0) {
+        // Show dialog to ask if excess should be loan or other
         setPendingExpense(expense);
         setShowOverspendDialog(true);
         return;
@@ -212,13 +212,35 @@ const ExpenseTrackerPage: React.FC = () => {
       return;
     }
 
-    // Update category based on choice
-    const updatedExpense = {
-      ...pendingExpense,
-      category: choice === 'loan' ? 'Loan' : 'Other',
-    };
+    const totalIncome = getTotalIncome();
+    const totalExpenses = getTotalExpenses();
+    const availableBalance = totalIncome - totalExpenses;
+    const excessAmount = pendingExpense.amount - availableBalance;
+    const normalAmount = availableBalance;
 
-    saveExpense(updatedExpense);
+    // Save the normal expense part (within income)
+    if (normalAmount > 0) {
+      const normalExpense: Expense = {
+        id: Date.now().toString(),
+        amount: normalAmount,
+        category: pendingExpense.category,
+        description: pendingExpense.description,
+        date: pendingExpense.date,
+        type: 'expense',
+      };
+      saveExpense(normalExpense);
+    }
+
+    // Save the excess amount as loan or other
+    const excessExpense: Expense = {
+      id: (Date.now() + 1).toString(),
+      amount: excessAmount,
+      category: choice === 'loan' ? 'Loan' : 'Other',
+      description: `${pendingExpense.description} (Excess)`,
+      date: pendingExpense.date,
+      type: 'expense',
+    };
+    saveExpense(excessExpense);
     
     setNewExpense({
       amount: '',
@@ -750,7 +772,7 @@ const ExpenseTrackerPage: React.FC = () => {
                 textAlign: 'center',
                 fontSize: '1.1rem',
               }}>
-                Your total expenses will exceed your income. Is this a loan or other type of expense?
+                This expense exceeds your available balance. Should the excess amount be saved as a loan or other?
               </p>
               <div style={{
                 background: 'rgba(244, 241, 232, 0.7)',
@@ -759,13 +781,13 @@ const ExpenseTrackerPage: React.FC = () => {
                 marginBottom: '1.5rem',
               }}>
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>Current Income:</strong> {formatCurrency(getTotalIncome())}
+                  <strong>Available Balance:</strong> {formatCurrency(getTotalIncome() - getTotalExpenses())}
                 </div>
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>Current Expenses:</strong> {formatCurrency(getTotalExpenses())}
+                  <strong>Expense Amount:</strong> {formatCurrency(pendingExpense?.amount || 0)}
                 </div>
                 <div style={{ color: 'var(--barn-red)', fontWeight: 'bold' }}>
-                  <strong>New Total:</strong> {formatCurrency(getTotalExpenses() + (pendingExpense?.amount || 0))}
+                  <strong>Excess Amount:</strong> {formatCurrency((pendingExpense?.amount || 0) - (getTotalIncome() - getTotalExpenses()))}
                 </div>
               </div>
               <div style={{
