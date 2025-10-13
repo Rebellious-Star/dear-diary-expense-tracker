@@ -283,18 +283,8 @@ const ForumPage: React.FC = () => {
       moderationReason: undefined,
     };
     try {
-      await api.post('/forum/posts', payload);
-      
-      // Small delay to ensure backend processes the post
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const res = await api.get('/forum/posts');
-      setPosts(res.data || []);
-      toast.success('Post added successfully!');
-    } catch (err) {
-      console.error('Failed to add post:', err);
-      // fallback optimistic
-      const post: Post = {
+      // Optimistic update: Add post to UI immediately
+      const optimisticPost: Post = {
         id: Date.now().toString(),
         author: user.username,
         content: newPost,
@@ -303,10 +293,21 @@ const ForumPage: React.FC = () => {
         replies: [],
         isModerated: false,
       };
-      setPosts([post, ...posts]);
+      setPosts([optimisticPost, ...posts]);
       toast.success('Post added successfully!');
+      setNewPost('');
+      
+      // Post to backend
+      await api.post('/forum/posts', payload);
+      
+      // Background refresh
+      api.get('/forum/posts').then(res => setPosts(res.data || [])).catch(err => console.error('Refresh failed:', err));
+    } catch (err) {
+      console.error('Failed to add post:', err);
+      toast.error('Failed to add post. Please try again.');
+      // Revert optimistic update
+      api.get('/forum/posts').then(res => setPosts(res.data || []));
     }
-    setNewPost('');
   };
 
   const handleReplySubmit = async (postId: string) => {
@@ -344,20 +345,33 @@ const ForumPage: React.FC = () => {
       moderationReason: undefined,
     };
     try {
+      // Optimistic update: Add reply to UI immediately
+      const optimisticReply: Reply = {
+        id: Date.now().toString(),
+        author: user.username,
+        content: replyContent,
+        timestamp: payload.timestamp,
+        likes: 0,
+        isModerated: false,
+      };
+      setPosts(prev => prev.map(p => 
+        p.id === postId ? { ...p, replies: [...p.replies, optimisticReply] } : p
+      ));
+      toast.success('Reply added successfully!');
+      setNewReply({ ...newReply, [postId]: '' });
+      setShowReplyForm({ ...showReplyForm, [postId]: false });
+      
+      // Post to backend
       await api.post(`/forum/posts/${postId}/replies`, payload);
       
-      // Small delay to ensure backend processes the reply
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const res = await api.get('/forum/posts');
-      setPosts(res.data || []);
-      toast.success('Reply added successfully!');
+      // Background refresh
+      api.get('/forum/posts').then(res => setPosts(res.data || [])).catch(err => console.error('Refresh failed:', err));
     } catch (err) {
       console.error('Failed to add reply:', err);
       toast.error('Failed to add reply. Please try again.');
+      // Revert optimistic update
+      api.get('/forum/posts').then(res => setPosts(res.data || []));
     }
-    setNewReply({ ...newReply, [postId]: '' });
-    setShowReplyForm({ ...showReplyForm, [postId]: false });
   };
 
   const handleLike = async (postId: string, replyId?: string) => {

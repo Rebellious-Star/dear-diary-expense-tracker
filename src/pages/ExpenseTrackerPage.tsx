@@ -125,14 +125,16 @@ const ExpenseTrackerPage: React.FC = () => {
       const postRes = await api.post('/expenses', expense);
       console.log('✅ Expense posted:', postRes.data);
       
-      // Small delay to ensure backend processes the save
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      console.log('📥 Fetching all expenses...');
-      const res = await api.get('/expenses');
-      console.log('✅ Got expenses:', res.data);
-      setExpenses(res.data || []);
+      // Optimistic update: Add the new expense immediately to UI
+      const newExpenseWithId = postRes.data;
+      setExpenses(prev => [newExpenseWithId, ...prev]);
       toast.success(`${expense.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      
+      // Background refresh to ensure sync (no await, happens in background)
+      api.get('/expenses').then(res => {
+        console.log('📥 Background refresh:', res.data.length, 'expenses');
+        setExpenses(res.data || []);
+      }).catch(err => console.error('Background refresh failed:', err));
       
       // Update simple streaks (one transaction per day)
       try {
@@ -261,19 +263,22 @@ const ExpenseTrackerPage: React.FC = () => {
 
   const handleDeleteExpense = async (id: string) => {
     try {
+      // Optimistic update: Remove from UI immediately
+      setExpenses(prev => prev.filter(expense => expense.id !== id));
+      toast.success('Expense deleted successfully!');
+      
+      // Delete from backend
       await api.delete(`/expenses/${id}`);
       
-      // Small delay to ensure backend processes the delete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const res = await api.get('/expenses');
-      setExpenses(res.data || []);
-      toast.success('Expense deleted successfully!');
+      // Background refresh to ensure sync
+      api.get('/expenses').then(res => {
+        setExpenses(res.data || []);
+      }).catch(err => console.error('Background refresh failed:', err));
     } catch (err) {
       console.error('Failed to delete expense:', err);
       toast.error('Failed to delete expense. Please try again.');
-      // fallback optimistic
-      setExpenses(expenses.filter(expense => expense.id !== id));
+      // Revert optimistic update by fetching from backend
+      api.get('/expenses').then(res => setExpenses(res.data || []));
     }
   };
 
