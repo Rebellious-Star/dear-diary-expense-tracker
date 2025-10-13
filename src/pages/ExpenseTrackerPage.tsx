@@ -118,49 +118,51 @@ const ExpenseTrackerPage: React.FC = () => {
     return incomeKeywords.some(keyword => lowerDesc.includes(keyword));
   };
 
-  const saveExpense = (expense: Expense) => {
+  const saveExpense = async (expense: Expense) => {
     // Post to backend then refresh list
     console.log('📤 Posting expense:', expense);
-    api.post('/expenses', expense).then(async (postRes) => {
+    try {
+      const postRes = await api.post('/expenses', expense);
       console.log('✅ Expense posted:', postRes.data);
       console.log('📥 Fetching all expenses...');
       const res = await api.get('/expenses');
       console.log('✅ Got expenses:', res.data);
       setExpenses(res.data || []);
       toast.success(`${expense.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
-    }).catch((err) => {
+      
+      // Update simple streaks (one transaction per day)
+      try {
+        const uid = user ? user.id : 'guest';
+        const key = `streak:${uid}`;
+        const raw = localStorage.getItem(key);
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        let data = raw ? JSON.parse(raw) : { lastDate: '', count: 0, best: 0 };
+        if (data.lastDate === todayStr) {
+          // already counted today
+        } else {
+          const last = data.lastDate ? new Date(data.lastDate) : null;
+          const diffDays = last ? Math.floor((today.getTime() - last.getTime()) / (1000*60*60*24)) : null;
+          if (diffDays === 1) {
+            data.count = (data.count || 0) + 1;
+          } else {
+            data.count = 1; // reset streak
+          }
+          data.lastDate = todayStr;
+          data.best = Math.max(data.best || 0, data.count);
+          localStorage.setItem(key, JSON.stringify(data));
+        }
+      } catch {}
+    } catch (err) {
       console.error('❌ Failed to add expense:', err);
-      console.error('Error details:', err.response?.data);
+      console.error('Error details:', (err as any).response?.data);
       toast.error('Failed to add expense. Please try again.');
       // fallback optimistic
       setExpenses([expense, ...expenses]);
-    });
-    // Update simple streaks (one transaction per day)
-    try {
-      const uid = user ? user.id : 'guest';
-      const key = `streak:${uid}`;
-      const raw = localStorage.getItem(key);
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      let data = raw ? JSON.parse(raw) : { lastDate: '', count: 0, best: 0 };
-      if (data.lastDate === todayStr) {
-        // already counted today
-      } else {
-        const last = data.lastDate ? new Date(data.lastDate) : null;
-        const diffDays = last ? Math.floor((today.getTime() - last.getTime()) / (1000*60*60*24)) : null;
-        if (diffDays === 1) {
-          data.count = (data.count || 0) + 1;
-        } else {
-          data.count = 1; // reset streak
-        }
-        data.lastDate = todayStr;
-        data.best = Math.max(data.best || 0, data.count);
-        localStorage.setItem(key, JSON.stringify(data));
-      }
-    } catch {}
+    }
   };
 
-  const handleAddExpense = () => {
+  const handleAddExpense = async () => {
     if (!newExpense.amount || !newExpense.description) {
       toast.error('Please fill in all required fields');
       return;
@@ -195,7 +197,7 @@ const ExpenseTrackerPage: React.FC = () => {
         return;
       }
     }
-    saveExpense(expense);
+    await saveExpense(expense);
     setNewExpense({
       amount: '',
       category: expenseCategories[0].name,
@@ -205,7 +207,7 @@ const ExpenseTrackerPage: React.FC = () => {
     setShowAddForm(false);
   };
 
-  const handleOverspendChoice = (choice: 'loan' | 'other' | 'cancel') => {
+  const handleOverspendChoice = async (choice: 'loan' | 'other' | 'cancel') => {
     if (choice === 'cancel' || !pendingExpense) {
       setShowOverspendDialog(false);
       setPendingExpense(null);
@@ -228,7 +230,7 @@ const ExpenseTrackerPage: React.FC = () => {
         date: pendingExpense.date,
         type: 'expense',
       };
-      saveExpense(normalExpense);
+      await saveExpense(normalExpense);
     }
 
     // Save the excess amount as loan or other
@@ -240,7 +242,7 @@ const ExpenseTrackerPage: React.FC = () => {
       date: pendingExpense.date,
       type: 'expense',
     };
-    saveExpense(excessExpense);
+    await saveExpense(excessExpense);
     
     setNewExpense({
       amount: '',

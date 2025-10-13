@@ -97,6 +97,10 @@ const ForumPage: React.FC = () => {
       const res = await api.get('/forum/posts');
       setPosts(res.data || []);
       
+      // Clear state when user changes (including logout)
+      setUserWarnings({});
+      setBannedUsers({});
+      
       if (user) {
         try {
           // Fetch current user's info (including ban status and warnings)
@@ -106,6 +110,8 @@ const ForumPage: React.FC = () => {
           // Update warnings from backend
           if (userData.forumWarnings) {
             setUserWarnings({ [user.username]: userData.forumWarnings });
+          } else {
+            setUserWarnings({});
           }
           
           // Update ban status from backend
@@ -113,6 +119,8 @@ const ForumPage: React.FC = () => {
             setBannedUsers({
               [user.username]: { isBanned: true, expiry: userData.banExpiry }
             });
+          } else {
+            setBannedUsers({});
           }
           
           // If admin, also fetch all users for admin panel

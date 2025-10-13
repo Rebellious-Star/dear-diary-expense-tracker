@@ -328,6 +328,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setAuthToken(undefined);
     localStorage.removeItem('userData');
+    // Clear forum-related state to prevent cross-account contamination
+    localStorage.removeItem('bannedUsers');
+    localStorage.removeItem('userWarnings');
   };
 
   const value: AuthContextType = {
