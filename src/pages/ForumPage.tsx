@@ -282,11 +282,17 @@ const ForumPage: React.FC = () => {
       isModerated: false,
       moderationReason: undefined,
     };
-    api.post('/forum/posts', payload).then(async () => {
+    try {
+      await api.post('/forum/posts', payload);
+      
+      // Small delay to ensure backend processes the post
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       const res = await api.get('/forum/posts');
       setPosts(res.data || []);
       toast.success('Post added successfully!');
-    }).catch(() => {
+    } catch (err) {
+      console.error('Failed to add post:', err);
       // fallback optimistic
       const post: Post = {
         id: Date.now().toString(),
@@ -299,7 +305,7 @@ const ForumPage: React.FC = () => {
       };
       setPosts([post, ...posts]);
       toast.success('Post added successfully!');
-    });
+    }
     setNewPost('');
   };
 
@@ -337,44 +343,41 @@ const ForumPage: React.FC = () => {
       isModerated: false,
       moderationReason: undefined,
     };
-    api.post(`/forum/posts/${postId}/replies`, payload).then(async () => {
+    try {
+      await api.post(`/forum/posts/${postId}/replies`, payload);
+      
+      // Small delay to ensure backend processes the reply
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       const res = await api.get('/forum/posts');
       setPosts(res.data || []);
       toast.success('Reply added successfully!');
-    }).catch(() => {
-      const reply: Reply = {
-        id: Date.now().toString(),
-        author: user.username,
-        content: replyContent,
-        timestamp: payload.timestamp,
-        likes: 0,
-        isModerated: false,
-      };
-      setPosts(posts.map(post => post.id === postId ? { ...post, replies: [...post.replies, reply] } : post));
-      toast.success('Reply added successfully!');
-    });
-
-    setNewReply(prev => ({ ...prev, [postId]: '' }));
-    setShowReplyForm(prev => ({ ...prev, [postId]: false }));
+    } catch (err) {
+      console.error('Failed to add reply:', err);
+      toast.error('Failed to add reply. Please try again.');
+    }
+    setNewReply({ ...newReply, [postId]: '' });
+    setShowReplyForm({ ...showReplyForm, [postId]: false });
   };
 
-  const handleLike = (postId: string, replyId?: string) => {
+  const handleLike = async (postId: string, replyId?: string) => {
     if (!user) {
       toast.error('Please log in to like posts');
       return;
     }
 
-    api.post(`/forum/posts/${postId}/like`).then(async () => {
+    try {
+      await api.post(`/forum/posts/${postId}/like`);
+      
+      // Small delay to ensure backend processes the like
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const res = await api.get('/forum/posts');
       setPosts(res.data || []);
-    }).catch(() => {
-      setPosts(posts.map(post => {
-        if (post.id === postId) {
-          return { ...post, likes: post.likes + 1 };
-        }
-        return post;
-      }));
-    });
+    } catch (err) {
+      console.error('Failed to like post:', err);
+      toast.error('Failed to like post');
+    }
   };
 
   const handleDeletePost = (postId: string) => {

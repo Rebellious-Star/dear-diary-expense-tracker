@@ -25,9 +25,17 @@ const AdminPage: React.FC = () => {
   }, [user]);
 
   const unban = async (username: string) => {
-    await api.post('/forum/moderation/unban', { username });
-    const u = await api.get('/auth/users');
-    setUsers(u.data || []);
+    try {
+      await api.post('/forum/moderation/unban', { username });
+      
+      // Small delay to ensure backend processes the unban
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const u = await api.get('/auth/users');
+      setUsers(u.data || []);
+    } catch (err) {
+      console.error('Failed to unban user:', err);
+    }
   };
 
   if (!user?.isAdmin) {

@@ -126,7 +126,7 @@ const ExpenseTrackerPage: React.FC = () => {
       console.log('✅ Expense posted:', postRes.data);
       
       // Small delay to ensure backend processes the save
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       console.log('📥 Fetching all expenses...');
       const res = await api.get('/expenses');
@@ -259,17 +259,22 @@ const ExpenseTrackerPage: React.FC = () => {
     setPendingExpense(null);
   };
 
-  const handleDeleteExpense = (id: string) => {
-    api.delete(`/expenses/${id}`).then(async () => {
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      await api.delete(`/expenses/${id}`);
+      
+      // Small delay to ensure backend processes the delete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const res = await api.get('/expenses');
       setExpenses(res.data || []);
       toast.success('Expense deleted successfully!');
-    }).catch((err) => {
+    } catch (err) {
       console.error('Failed to delete expense:', err);
       toast.error('Failed to delete expense. Please try again.');
       // fallback optimistic
       setExpenses(expenses.filter(expense => expense.id !== id));
-    });
+    }
   };
 
   const getTotalExpenses = () => {
