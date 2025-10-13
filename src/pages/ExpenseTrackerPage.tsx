@@ -124,6 +124,10 @@ const ExpenseTrackerPage: React.FC = () => {
     try {
       const postRes = await api.post('/expenses', expense);
       console.log('✅ Expense posted:', postRes.data);
+      
+      // Small delay to ensure backend processes the save
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       console.log('📥 Fetching all expenses...');
       const res = await api.get('/expenses');
       console.log('✅ Got expenses:', res.data);

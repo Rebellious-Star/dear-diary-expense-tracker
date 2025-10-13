@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../api';
 
 interface Message {
   id: string;
@@ -45,45 +46,52 @@ const TipsPage: React.FC = () => {
   const [expenseData, setExpenseData] = useState<ExpenseData | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load expense data from per-user localStorage
+  // Load expense data from backend API
   useEffect(() => {
-    const key = user ? `expenses:${user.id}` : 'expenses:guest';
-    const savedExpenses = localStorage.getItem(key);
-    if (savedExpenses) {
-      const expenses = JSON.parse(savedExpenses);
+    const loadExpenseData = async () => {
+      if (!user) return;
       
-      const totalExpenses = expenses
-        .filter((expense: any) => expense.type === 'expense')
-        .reduce((total: number, expense: any) => total + expense.amount, 0);
-      
-      const totalIncome = expenses
-        .filter((expense: any) => expense.type === 'income')
-        .reduce((total: number, expense: any) => total + expense.amount, 0);
-      
-      const categories: { [key: string]: number } = {};
-      expenses.forEach((expense: any) => {
-        if (expense.type === 'expense') {
-          categories[expense.category] = (categories[expense.category] || 0) + expense.amount;
-        }
-      });
-      
-      const recentExpenses = expenses
-        .filter((expense: any) => expense.type === 'expense')
-        .slice(0, 10)
-        .map((expense: any) => ({
-          amount: expense.amount,
-          category: expense.category,
-          description: expense.description,
-          date: expense.date,
-        }));
-      
-      setExpenseData({
-        totalExpenses,
-        totalIncome,
-        categories,
-        recentExpenses,
-      });
-    }
+      try {
+        const res = await api.get('/expenses');
+        const expenses = res.data || [];
+        
+        const totalExpenses = expenses
+          .filter((expense: any) => expense.type === 'expense')
+          .reduce((total: number, expense: any) => total + expense.amount, 0);
+        
+        const totalIncome = expenses
+          .filter((expense: any) => expense.type === 'income')
+          .reduce((total: number, expense: any) => total + expense.amount, 0);
+        
+        const categories: { [key: string]: number } = {};
+        expenses.forEach((expense: any) => {
+          if (expense.type === 'expense') {
+            categories[expense.category] = (categories[expense.category] || 0) + expense.amount;
+          }
+        });
+        
+        const recentExpenses = expenses
+          .filter((expense: any) => expense.type === 'expense')
+          .slice(0, 10)
+          .map((expense: any) => ({
+            amount: expense.amount,
+            category: expense.category,
+            description: expense.description,
+            date: expense.date,
+          }));
+        
+        setExpenseData({
+          totalExpenses,
+          totalIncome,
+          categories,
+          recentExpenses,
+        });
+      } catch (err) {
+        console.error('Failed to load expense data:', err);
+      }
+    };
+    
+    loadExpenseData();
   }, [user]);
 
   // Initialize with welcome message
@@ -183,7 +191,23 @@ const TipsPage: React.FC = () => {
 
     // Debt management
     if (message.includes('debt') || message.includes('loan') || message.includes('credit')) {
-      return `Managing debt effectively:\n\n• Pay more than minimum payments when possible\n• Focus on high-interest debt first\n• Consider debt consolidation if beneficial\n• Avoid taking on new debt\n• Build an emergency fund to prevent future debt\n\nWhat type of debt are you dealing with?`;
+      let loanAdvice = `Managing debt effectively:\n\n• Pay more than minimum payments when possible\n• Focus on high-interest debt first\n• Consider debt consolidation if beneficial\n• Avoid taking on new debt\n• Build an emergency fund to prevent future debt\n\n`;
+      
+      // Check if user has loan expenses
+      if (expenseData && expenseData.categories['Loan']) {
+        const loanAmount = expenseData.categories['Loan'];
+        const loanPercentage = ((loanAmount / expenseData.totalExpenses) * 100).toFixed(1);
+        loanAdvice += `I see you have ₹${loanAmount.toFixed(2)} in loan expenses (${loanPercentage}% of total expenses). `;
+        
+        if (parseFloat(loanPercentage) > 30) {
+          loanAdvice += `This is quite high! Consider:\n• Creating a debt payoff plan\n• Reducing discretionary spending\n• Looking for additional income sources\n\n`;
+        } else {
+          loanAdvice += `This is manageable. Keep making consistent payments!\n\n`;
+        }
+      }
+      
+      loanAdvice += `What type of debt are you dealing with?`;
+      return loanAdvice;
     }
 
     // Investment advice
