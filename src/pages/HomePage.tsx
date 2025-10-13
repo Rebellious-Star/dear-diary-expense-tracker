@@ -261,21 +261,27 @@ const HomePage: React.FC = () => {
 
       <Navbar />
 
-      {/* Hero Section */}
-      <section style={{ 
-        padding: '4rem 2rem', 
-        textAlign: 'center',
-        position: 'relative',
-        zIndex: 10,
-      }}>
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <motion.div
-            className="translucent-text"
-            style={{ marginBottom: '3rem' }}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
+      {/* Hero Section with GIF Background */}
+      <section className="hero-section-with-gif">
+        {/* Farm GIF Background */}
+        <img 
+          src="https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif" 
+          alt="Farm background"
+          className="hero-gif-background"
+        />
+        <div className="hero-gif-overlay"></div>
+        
+        <div className="hero-content" style={{ 
+          padding: '4rem 2rem', 
+          textAlign: 'center',
+        }}>
+          <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <motion.div
+              style={{ marginBottom: '3rem' }}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
             <motion.h1
               style={{
                 fontSize: '3.5rem',
@@ -374,15 +380,22 @@ const HomePage: React.FC = () => {
               </motion.div>
             ))}
           </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section style={{ 
-        padding: '4rem 2rem',
+      {/* Features Section with Side GIF */}
+      <section className="feature-section-with-gif" style={{ 
         position: 'relative',
         zIndex: 10,
       }}>
+        {/* Side GIF */}
+        <div className="feature-gif-container">
+          <img 
+            src="https://media.giphy.com/media/xUPGcC0R9QjyxkPnS8/giphy.gif" 
+            alt="Farm animals"
+          />
+        </div>
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <motion.div
             style={{ textAlign: 'center', marginBottom: '3rem' }}
@@ -467,19 +480,43 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section with Background GIF */}
       <section style={{ 
         padding: '4rem 2rem',
         position: 'relative',
         zIndex: 10,
+        overflow: 'hidden',
       }}>
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Background GIF */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          opacity: 0.1,
+        }}>
+          <img 
+            src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" 
+            alt="Wheat field"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              filter: 'blur(3px)',
+            }}
+          />
+        </div>
+        
+        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <motion.div
             className="translucent-card"
             style={{ 
               textAlign: 'center', 
               padding: '3rem',
-              background: 'linear-gradient(135deg, rgba(154, 205, 50, 0.1) 0%, rgba(240, 230, 140, 0.1) 100%)',
+              background: 'linear-gradient(135deg, rgba(154, 205, 50, 0.15) 0%, rgba(240, 230, 140, 0.15) 100%)',
+              backdropFilter: 'blur(10px)',
             }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
