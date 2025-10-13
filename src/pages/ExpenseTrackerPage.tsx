@@ -37,8 +37,10 @@ const ExpenseTrackerPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [showOverspendDialog, setShowOverspendDialog] = useState(false);
+  const [pendingExpense, setPendingExpense] = useState<Expense | null>(null);
 
-  const categories = [
+  const expenseCategories = [
     { name: 'Food & Dining', icon: '🍽️', color: 'var(--barn-red)' },
     { name: 'Transportation', icon: '🚗', color: 'var(--farm-green)' },
     { name: 'Entertainment', icon: '🎬', color: 'var(--wheat-gold)' },
@@ -46,15 +48,30 @@ const ExpenseTrackerPage: React.FC = () => {
     { name: 'Shopping', icon: '🛍️', color: 'var(--light-brown)' },
     { name: 'Health', icon: '🏥', color: 'var(--barn-red)' },
     { name: 'Utilities', icon: '⚡', color: 'var(--farm-green)' },
+    { name: 'Loan', icon: '💳', color: 'var(--barn-red)' },
     { name: 'Other', icon: '📦', color: 'var(--dark-brown)' },
   ];
 
+  const incomeCategories = [
+    { name: 'Salary', icon: '💰', color: 'var(--farm-green)' },
+    { name: 'Freelance', icon: '💼', color: 'var(--farm-green)' },
+    { name: 'Business', icon: '🏢', color: 'var(--farm-green)' },
+    { name: 'Investment', icon: '📈', color: 'var(--farm-green)' },
+    { name: 'Gift', icon: '🎁', color: 'var(--farm-green)' },
+    { name: 'Other Income', icon: '💵', color: 'var(--farm-green)' },
+  ];
+
+  const categories = [...expenseCategories, ...incomeCategories];
+
   const [newExpense, setNewExpense] = useState({
     amount: '',
-    category: categories[0].name,
+    category: expenseCategories[0].name,
     description: '',
     type: 'expense' as 'income' | 'expense',
   });
+
+  // Income detection keywords
+  const incomeKeywords = ['salary', 'income', 'paid', 'payment', 'freelance', 'bonus', 'wage', 'earn', 'revenue', 'profit', 'gift', 'refund', 'cashback', 'dividend', 'interest'];
 
   // Helpers
   const formatCurrency = (value: number): string => {
@@ -96,20 +113,12 @@ const ExpenseTrackerPage: React.FC = () => {
     setFilteredExpenses(filtered);
   }, [expenses, searchTerm, filterCategory, filterType]);
 
-  const handleAddExpense = () => {
-    if (!newExpense.amount || !newExpense.description) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+  const detectIncomeFromDescription = (description: string): boolean => {
+    const lowerDesc = description.toLowerCase();
+    return incomeKeywords.some(keyword => lowerDesc.includes(keyword));
+  };
 
-    const expense: Expense = {
-      id: Date.now().toString(),
-      amount: parseFloat(newExpense.amount),
-      category: newExpense.category,
-      description: newExpense.description,
-      date: new Date().toISOString().split('T')[0],
-      type: newExpense.type,
-    };
+  const saveExpense = (expense: Expense) => {
     // Post to backend then refresh list
     console.log('📤 Posting expense:', expense);
     api.post('/expenses', expense).then(async (postRes) => {
@@ -118,7 +127,7 @@ const ExpenseTrackerPage: React.FC = () => {
       const res = await api.get('/expenses');
       console.log('✅ Got expenses:', res.data);
       setExpenses(res.data || []);
-      toast.success(`${newExpense.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      toast.success(`${expense.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
     }).catch((err) => {
       console.error('❌ Failed to add expense:', err);
       console.error('Error details:', err.response?.data);
@@ -149,13 +158,77 @@ const ExpenseTrackerPage: React.FC = () => {
         localStorage.setItem(key, JSON.stringify(data));
       }
     } catch {}
+  };
+
+  const handleAddExpense = () => {
+    if (!newExpense.amount || !newExpense.description) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Auto-detect income from description
+    let detectedType = newExpense.type;
+    if (newExpense.type === 'expense' && detectIncomeFromDescription(newExpense.description)) {
+      detectedType = 'income';
+      toast.success('💡 Income detected from description!');
+    }
+
+    const expense: Expense = {
+      id: Date.now().toString(),
+      amount: parseFloat(newExpense.amount),
+      category: newExpense.category,
+      description: newExpense.description,
+      date: new Date().toISOString().split('T')[0],
+      type: detectedType,
+    };
+
+    // Check if expense exceeds income
+    if (expense.type === 'expense') {
+      const totalIncome = getTotalIncome();
+      const totalExpenses = getTotalExpenses();
+      const newTotal = totalExpenses + expense.amount;
+      
+      if (newTotal > totalIncome && totalIncome > 0) {
+        // Show dialog to ask if it's a loan or other
+        setPendingExpense(expense);
+        setShowOverspendDialog(true);
+        return;
+      }
+    }
+    saveExpense(expense);
     setNewExpense({
       amount: '',
-      category: categories[0].name,
+      category: expenseCategories[0].name,
       description: '',
       type: 'expense',
     });
     setShowAddForm(false);
+  };
+
+  const handleOverspendChoice = (choice: 'loan' | 'other' | 'cancel') => {
+    if (choice === 'cancel' || !pendingExpense) {
+      setShowOverspendDialog(false);
+      setPendingExpense(null);
+      return;
+    }
+
+    // Update category based on choice
+    const updatedExpense = {
+      ...pendingExpense,
+      category: choice === 'loan' ? 'Loan' : 'Other',
+    };
+
+    saveExpense(updatedExpense);
+    
+    setNewExpense({
+      amount: '',
+      category: expenseCategories[0].name,
+      description: '',
+      type: 'expense',
+    });
+    setShowAddForm(false);
+    setShowOverspendDialog(false);
+    setPendingExpense(null);
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -393,7 +466,14 @@ const ExpenseTrackerPage: React.FC = () => {
                 </label>
                 <select
                   value={newExpense.type}
-                  onChange={(e) => setNewExpense({ ...newExpense, type: e.target.value as 'income' | 'expense' })}
+                  onChange={(e) => {
+                    const newType = e.target.value as 'income' | 'expense';
+                    setNewExpense({ 
+                      ...newExpense, 
+                      type: newType,
+                      category: newType === 'expense' ? expenseCategories[0].name : incomeCategories[0].name
+                    });
+                  }}
                   className="input-field"
                 >
                   <option value="expense">Expense</option>
@@ -435,11 +515,19 @@ const ExpenseTrackerPage: React.FC = () => {
                   onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
                   className="input-field"
                 >
-                  {categories.map(category => (
-                    <option key={category.name} value={category.name}>
-                      {category.icon} {category.name}
-                    </option>
-                  ))}
+                  {newExpense.type === 'expense' ? (
+                    expenseCategories.map(category => (
+                      <option key={category.name} value={category.name}>
+                        {category.icon} {category.name}
+                      </option>
+                    ))
+                  ) : (
+                    incomeCategories.map(category => (
+                      <option key={category.name} value={category.name}>
+                        {category.icon} {category.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
@@ -614,6 +702,108 @@ const ExpenseTrackerPage: React.FC = () => {
                 );
               })}
             </div>
+          </motion.div>
+        )}
+
+        {/* Overspend Dialog */}
+        {showOverspendDialog && (
+          <motion.div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="translucent-card"
+              style={{
+                maxWidth: '500px',
+                margin: '1rem',
+                padding: '2rem',
+              }}
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: 'var(--barn-red)',
+                marginBottom: '1rem',
+                textAlign: 'center',
+              }}>
+                ⚠️ Expense Exceeds Income
+              </h3>
+              <p style={{
+                color: 'var(--dark-brown)',
+                marginBottom: '1.5rem',
+                textAlign: 'center',
+                fontSize: '1.1rem',
+              }}>
+                Your total expenses will exceed your income. Is this a loan or other type of expense?
+              </p>
+              <div style={{
+                background: 'rgba(244, 241, 232, 0.7)',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1.5rem',
+              }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Current Income:</strong> {formatCurrency(getTotalIncome())}
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Current Expenses:</strong> {formatCurrency(getTotalExpenses())}
+                </div>
+                <div style={{ color: 'var(--barn-red)', fontWeight: 'bold' }}>
+                  <strong>New Total:</strong> {formatCurrency(getTotalExpenses() + (pendingExpense?.amount || 0))}
+                </div>
+              </div>
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                flexDirection: 'column',
+              }}>
+                <button
+                  onClick={() => handleOverspendChoice('loan')}
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                >
+                  💳 Save as Loan
+                </button>
+                <button
+                  onClick={() => handleOverspendChoice('other')}
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                >
+                  📦 Save as Other
+                </button>
+                <button
+                  onClick={() => handleOverspendChoice('cancel')}
+                  style={{
+                    width: '100%',
+                    padding: '0.8rem',
+                    background: 'transparent',
+                    border: '2px solid var(--dark-brown)',
+                    borderRadius: '12px',
+                    color: 'var(--dark-brown)',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
 
