@@ -8,14 +8,18 @@ import ForumPage from './pages/ForumPage';
 import TipsPage from './pages/TipsPage';
 import ContactPage from './pages/ContactPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
+import CustomBackground from './components/CustomBackground';
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="App">
-        <Toaster 
+    <ThemeProvider>
+      <AuthProvider>
+        <CustomBackground />
+        <div className="App">
+          <Toaster 
           position="top-right"
           toastOptions={{
             duration: 4000,
@@ -63,8 +67,9 @@ function App() {
             } 
           />
         </Routes>
-      </div>
-    </AuthProvider>
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

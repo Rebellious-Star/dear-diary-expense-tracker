@@ -28,6 +28,10 @@
   --soft-shadow: 0 4px 6px rgba(139, 69, 19, 0.1);
   --medium-shadow: 0 8px 15px rgba(139, 69, 19, 0.15);
   --strong-shadow: 0 12px 25px rgba(139, 69, 19, 0.2);
+  
+  /* Performance optimizations */
+  --transition-speed: 0.3s;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
@@ -36,6 +40,9 @@ body {
   min-height: 100vh;
   color: var(--accent-brown);
   overflow-x: hidden;
+  position: relative;
+  transition: background var(--transition-speed) var(--transition-timing), 
+              color var(--transition-speed) var(--transition-timing);
 }
 
 .App {
@@ -171,11 +178,13 @@ body {
 .translucent-card {
   background: rgba(244, 241, 232, 0.9);
   backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px); /* Safari support */
   border-radius: 16px;
   padding: 2rem;
   box-shadow: var(--medium-shadow);
   border: 1px solid rgba(210, 180, 140, 0.4);
-  transition: all 0.3s ease;
+  transition: all var(--transition-speed) var(--transition-timing);
+  will-change: transform, box-shadow;
 }
 
 .translucent-card:hover {
@@ -196,11 +205,13 @@ body {
   border-radius: 25px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-speed) var(--transition-timing);
   box-shadow: var(--soft-shadow);
   font-family: var(--font-primary);
   position: relative;
   overflow: hidden;
+  will-change: transform, box-shadow;
+  transform: translateZ(0); /* Hardware acceleration */
 }
 
 .btn-primary::before {
@@ -237,10 +248,13 @@ body {
   border-radius: 25px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-speed) var(--transition-timing);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
   position: relative;
   overflow: hidden;
+  will-change: transform, background;
+  transform: translateZ(0); /* Hardware acceleration */
 }
 
 .btn-secondary::after {

@@ -18,6 +18,10 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 interface Expense {
   id: string;
@@ -39,6 +43,7 @@ const ExpenseTrackerPage: React.FC = () => {
   const [filterType, setFilterType] = useState('all');
   const [showOverspendDialog, setShowOverspendDialog] = useState(false);
   const [pendingExpense, setPendingExpense] = useState<Expense | null>(null);
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
 
   const expenseCategories = [
     { name: 'Food & Dining', icon: '🍽️', color: 'var(--barn-red)' },
@@ -184,6 +189,12 @@ const ExpenseTrackerPage: React.FC = () => {
       toast.success('💡 Income detected from description!');
     }
 
+    // Block expense if no income exists
+    if (detectedType === 'expense' && getTotalIncome() === 0) {
+      toast.error('❌ Please add income before adding expenses!');
+      return;
+    }
+
     const expense: Expense = {
       id: Date.now().toString(),
       amount: parseFloat(newExpense.amount),
@@ -313,6 +324,126 @@ const ExpenseTrackerPage: React.FC = () => {
   };
 
   const categoryTotals = getCategoryTotals();
+
+  // Calculate income usage percentage
+  const getIncomeUsageData = () => {
+    const totalIncome = getTotalIncome();
+    const totalExpenses = getTotalExpenses();
+    
+    if (totalIncome === 0) {
+      return { usedPercentage: 0, loanPercentage: 0, remainingPercentage: 0 };
+    }
+
+    const usedPercentage = Math.min((totalExpenses / totalIncome) * 100, 100);
+    const loanPercentage = totalExpenses > totalIncome ? ((totalExpenses - totalIncome) / totalIncome) * 100 : 0;
+    const remainingPercentage = Math.max(100 - usedPercentage, 0);
+
+    return { usedPercentage, loanPercentage, remainingPercentage };
+  };
+
+  const incomeUsageData = getIncomeUsageData();
+
+  // Pie chart data
+  const pieChartData = {
+    labels: incomeUsageData.loanPercentage > 0 
+      ? ['Used', 'Remaining', 'Loan/Others']
+      : ['Used', 'Remaining'],
+    datasets: [
+      {
+        data: incomeUsageData.loanPercentage > 0
+          ? [incomeUsageData.usedPercentage, incomeUsageData.remainingPercentage, incomeUsageData.loanPercentage]
+          : [incomeUsageData.usedPercentage, incomeUsageData.remainingPercentage],
+        backgroundColor: incomeUsageData.loanPercentage > 0
+          ? ['#8B4513', '#90EE90', '#DC143C']
+          : ['#8B4513', '#90EE90'],
+        borderColor: incomeUsageData.loanPercentage > 0
+          ? ['#654321', '#7CCD7C', '#B22222']
+          : ['#654321', '#7CCD7C'],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  // Bar chart data
+  const barChartData = {
+    labels: ['Income Usage'],
+    datasets: [
+      {
+        label: 'Used (%)',
+        data: [incomeUsageData.usedPercentage],
+        backgroundColor: '#8B4513',
+        borderColor: '#654321',
+        borderWidth: 2,
+      },
+      {
+        label: 'Remaining (%)',
+        data: [incomeUsageData.remainingPercentage],
+        backgroundColor: '#90EE90',
+        borderColor: '#7CCD7C',
+        borderWidth: 2,
+      },
+      ...(incomeUsageData.loanPercentage > 0 ? [{
+        label: 'Loan/Others (%)',
+        data: [incomeUsageData.loanPercentage],
+        backgroundColor: '#DC143C',
+        borderColor: '#B22222',
+        borderWidth: 2,
+      }] : []),
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          color: '#654321',
+          font: {
+            size: 12,
+            weight: 'bold' as const,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || '';
+            const value = context.parsed || context.raw || 0;
+            return `${label}: ${value.toFixed(1)}%`;
+          },
+        },
+      },
+    },
+  };
+
+  const barChartOptions = {
+    ...chartOptions,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: Math.max(100, incomeUsageData.usedPercentage + incomeUsageData.loanPercentage + 10),
+        ticks: {
+          color: '#654321',
+          callback: function(value: any) {
+            return value + '%';
+          },
+        },
+        grid: {
+          color: 'rgba(139, 69, 19, 0.1)',
+        },
+      },
+      x: {
+        ticks: {
+          color: '#654321',
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -693,6 +824,145 @@ const ExpenseTrackerPage: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Income Usage Chart */}
+        {getTotalIncome() > 0 && (
+          <motion.div
+            className="translucent-card"
+            style={{ marginBottom: '2rem' }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: 'var(--accent-brown)',
+                margin: 0,
+              }}>
+                📊 Income Usage Analysis
+              </h3>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setChartType('pie')}
+                  className={chartType === 'pie' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                >
+                  <PieChart size={16} style={{ marginRight: '0.3rem' }} />
+                  Pie Chart
+                </button>
+                <button
+                  onClick={() => setChartType('bar')}
+                  className={chartType === 'bar' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                >
+                  <BarChart3 size={16} style={{ marginRight: '0.3rem' }} />
+                  Bar Chart
+                </button>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '2rem',
+              alignItems: 'center',
+            }}>
+              {/* Chart */}
+              <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {chartType === 'pie' ? (
+                  <Pie data={pieChartData} options={chartOptions} />
+                ) : (
+                  <Bar data={barChartData} options={barChartOptions} />
+                )}
+              </div>
+
+              {/* Stats */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{
+                  background: 'rgba(244, 241, 232, 0.7)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(139, 69, 19, 0.3)',
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--dark-brown)', marginBottom: '0.3rem' }}>Total Income</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--farm-green)' }}>
+                    {formatCurrency(getTotalIncome())}
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'rgba(244, 241, 232, 0.7)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(139, 69, 19, 0.3)',
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--dark-brown)', marginBottom: '0.3rem' }}>Used</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B4513' }}>
+                    {incomeUsageData.usedPercentage.toFixed(1)}%
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--dark-brown)' }}>
+                    {formatCurrency(Math.min(getTotalExpenses(), getTotalIncome()))}
+                  </div>
+                </div>
+
+                {incomeUsageData.remainingPercentage > 0 && (
+                  <div style={{
+                    background: 'rgba(244, 241, 232, 0.7)',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    border: '2px solid rgba(144, 238, 144, 0.5)',
+                  }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--dark-brown)', marginBottom: '0.3rem' }}>Remaining</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#90EE90' }}>
+                      {incomeUsageData.remainingPercentage.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--dark-brown)' }}>
+                      {formatCurrency(getTotalIncome() - getTotalExpenses())}
+                    </div>
+                  </div>
+                )}
+
+                {incomeUsageData.loanPercentage > 0 && (
+                  <div style={{
+                    background: 'rgba(244, 241, 232, 0.7)',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    border: '2px solid rgba(220, 20, 60, 0.5)',
+                  }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--dark-brown)', marginBottom: '0.3rem' }}>Loan/Others (Overspent)</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#DC143C' }}>
+                      {incomeUsageData.loanPercentage.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--dark-brown)' }}>
+                      {formatCurrency(getTotalExpenses() - getTotalIncome())}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{
+                  background: 'rgba(244, 241, 232, 0.7)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(139, 69, 19, 0.3)',
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--dark-brown)', marginBottom: '0.3rem' }}>Total Usage</div>
+                  <div style={{ 
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold', 
+                    color: incomeUsageData.loanPercentage > 0 ? '#DC143C' : '#8B4513'
+                  }}>
+                    {(incomeUsageData.usedPercentage + incomeUsageData.loanPercentage).toFixed(1)}%
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--dark-brown)' }}>
+                    {getTotalExpenses() > getTotalIncome() ? '⚠️ Overspending detected!' : '✅ Within budget'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Category Breakdown */}
         {Object.keys(categoryTotals).length > 0 && (

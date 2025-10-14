@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, DollarSign, MessageSquare, Lightbulb, Mail, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Home, DollarSign, MessageSquare, Lightbulb, Mail, LogOut, User, Moon, Sun, Palette } from 'lucide-react';
+import ThemeCustomizer from './ThemeCustomizer';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -101,6 +103,16 @@ const Navbar: React.FC = () => {
             {isDarkActive() ? 'Light' : 'Dark'}
           </button>
 
+          <button
+            onClick={() => setShowThemeCustomizer(true)}
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.8rem' }}
+            title="Customize theme"
+          >
+            <Palette size={16} />
+            Theme
+          </button>
+
             {user?.isAdmin && (
               <Link
                 to="/admin"
@@ -145,6 +157,11 @@ const Navbar: React.FC = () => {
           )}
         </div>
       </div>
+      
+      <ThemeCustomizer 
+        isOpen={showThemeCustomizer} 
+        onClose={() => setShowThemeCustomizer(false)} 
+      />
     </motion.nav>
   );
 };
