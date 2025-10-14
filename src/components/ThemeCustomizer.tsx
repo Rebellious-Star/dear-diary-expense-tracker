@@ -122,7 +122,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
             style={{
               position: 'fixed',
               top: 0,
@@ -268,7 +268,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {themePresets.map((preset) => (
-                  <motion.button
+                  <button
                     key={preset.name}
                     onClick={() => handleThemeSelect(preset.name)}
                     className="translucent-card"
@@ -279,15 +279,13 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
                         ? '3px solid var(--farm-green)' 
                         : '2px solid var(--light-brown)',
                       background: currentTheme === preset.name
-                        ? 'rgba(154, 205, 50, 0.1)'
+                        ? 'rgba(154, 205, 50, 0.15)'
                         : 'rgba(244, 241, 232, 0.9)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      transition: 'all 0.3s ease',
+                      transition: 'all 0.2s ease',
                     }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <span style={{ fontSize: '1.5rem' }}>{preset.icon}</span>
@@ -301,7 +299,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
                     {currentTheme === preset.name && (
                       <Check size={20} color="var(--farm-green)" />
                     )}
-                  </motion.button>
+                  </button>
                 ))}
               </div>
             </section>

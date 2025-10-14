@@ -188,8 +188,8 @@ body {
 }
 
 .translucent-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--strong-shadow);
+  transform: translateY(-2px);
+  box-shadow: var(--medium-shadow);
 }
 
 .translucent-card:active {
@@ -214,26 +214,10 @@ body {
   transform: translateZ(0); /* Hardware acceleration */
 }
 
-.btn-primary::before {
-  content: '🌾';
-  position: absolute;
-  top: 50%;
-  left: -30px;
-  transform: translateY(-50%);
-  font-size: 20px;
-  opacity: 0;
-  transition: all 0.4s ease;
-}
-
-.btn-primary:hover::before {
-  left: 10px;
-  opacity: 1;
-}
-
 .btn-primary:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--medium-shadow);
-  padding-left: 40px;
+  background: linear-gradient(135deg, var(--wheat-gold) 0%, var(--farm-green) 100%);
 }
 
 .btn-primary:active {
@@ -257,27 +241,10 @@ body {
   transform: translateZ(0); /* Hardware acceleration */
 }
 
-.btn-secondary::after {
-  content: '🌻';
-  position: absolute;
-  top: 50%;
-  right: -30px;
-  transform: translateY(-50%) rotate(0deg);
-  font-size: 18px;
-  opacity: 0;
-  transition: all 0.4s ease;
-}
-
-.btn-secondary:hover::after {
-  right: 10px;
-  opacity: 1;
-  transform: translateY(-50%) rotate(360deg);
-}
-
 .btn-secondary:hover {
   background: var(--light-brown);
-  transform: translateY(-2px);
-  padding-right: 40px;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
 }
 
 .btn-secondary:active {
