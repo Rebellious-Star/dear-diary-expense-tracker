@@ -7,6 +7,7 @@ import ExpenseTrackerPage from './pages/ExpenseTrackerPage';
 import ForumPage from './pages/ForumPage';
 import TipsPage from './pages/TipsPage';
 import ContactPage from './pages/ContactPage';
+import ThemePage from './pages/ThemePage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -58,6 +59,14 @@ function App() {
             } 
           />
           <Route path="/contact" element={<ContactPage />} />
+          <Route 
+            path="/themes" 
+            element={
+              <ProtectedRoute>
+                <ThemePage />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/admin" 
             element={
