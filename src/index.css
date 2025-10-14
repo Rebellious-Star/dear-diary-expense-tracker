@@ -212,6 +212,10 @@ body {
   overflow: hidden;
   will-change: transform, box-shadow;
   transform: translateZ(0); /* Hardware acceleration */
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary:hover {
@@ -239,6 +243,10 @@ body {
   overflow: hidden;
   will-change: transform, background;
   transform: translateZ(0); /* Hardware acceleration */
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-secondary:hover {
