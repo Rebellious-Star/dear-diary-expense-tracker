@@ -277,22 +277,26 @@ const ForumPage: React.FC = () => {
 
     // Only create post if not moderated
     const payload = {
+      author: user.username,
       content: newPost,
       timestamp: new Date().toISOString(),
       isModerated: false,
       moderationReason: undefined,
     };
+    
+    // Create optimistic post outside try block so it's accessible in catch
+    const optimisticPost: Post = {
+      id: Date.now().toString(),
+      author: user.username,
+      content: newPost,
+      timestamp: payload.timestamp,
+      likes: 0,
+      replies: [],
+      isModerated: false,
+    };
+    
     try {
       // Optimistic update: Add post to UI immediately
-      const optimisticPost: Post = {
-        id: Date.now().toString(),
-        author: user.username,
-        content: newPost,
-        timestamp: payload.timestamp,
-        likes: 0,
-        replies: [],
-        isModerated: false,
-      };
       setPosts([optimisticPost, ...posts]);
       toast.success('Post added successfully!');
       setNewPost('');
@@ -343,16 +347,19 @@ const ForumPage: React.FC = () => {
       isModerated: false,
       moderationReason: undefined,
     };
+    
+    // Create optimistic reply outside try block so it's accessible in catch
+    const optimisticReply: Reply = {
+      id: Date.now().toString(),
+      author: user.username,
+      content: replyContent,
+      timestamp: payload.timestamp,
+      likes: 0,
+      isModerated: false,
+    };
+    
     try {
       // Optimistic update: Add reply to UI immediately
-      const optimisticReply: Reply = {
-        id: Date.now().toString(),
-        author: user.username,
-        content: replyContent,
-        timestamp: payload.timestamp,
-        likes: 0,
-        isModerated: false,
-      };
       setPosts(prev => prev.map(p => 
         p.id === postId ? { ...p, replies: [...p.replies, optimisticReply] } : p
       ));
