@@ -219,13 +219,15 @@ body {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--medium-shadow);
   background: linear-gradient(135deg, var(--wheat-gold) 0%, var(--farm-green) 100%);
 }
 
 .btn-primary:active {
-  transform: translateY(0px) scale(0.98);
+  transform: translateY(1px) scale(0.95);
+  box-shadow: var(--soft-shadow);
+  transition: all 0.1s ease;
 }
 
 .btn-secondary {
@@ -251,12 +253,14 @@ body {
 
 .btn-secondary:hover {
   background: var(--light-brown);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
 }
 
 .btn-secondary:active {
-  transform: translateY(0px) scale(0.98);
+  transform: translateY(1px) scale(0.95);
+  box-shadow: 0 2px 6px rgba(139, 69, 19, 0.15);
+  transition: all 0.1s ease;
 }
 
 /* Input Styles */
