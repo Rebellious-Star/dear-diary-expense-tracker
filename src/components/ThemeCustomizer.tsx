@@ -14,6 +14,11 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  // Debug: Log theme presets
+  console.log('ThemeCustomizer - Theme Presets:', themePresets);
+  console.log('ThemeCustomizer - Current Theme:', currentTheme);
+  console.log('ThemeCustomizer - Is Open:', isOpen);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -119,22 +124,25 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
 
           {/* Customizer Panel */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             style={{
               position: 'fixed',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              maxWidth: '450px',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '90%',
+              maxWidth: '900px',
+              maxHeight: '90vh',
               background: 'var(--primary-beige)',
-              boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.2)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
               zIndex: 1000,
               overflowY: 'auto',
-              padding: '2rem',
+              padding: '2.5rem',
+              borderRadius: '20px',
+              border: '3px solid var(--light-brown)',
             }}
           >
             {/* Header */}
@@ -172,20 +180,27 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
               </button>
             </div>
 
-            {/* Background Image Section */}
-            <section style={{ marginBottom: '2rem' }}>
-              <h3 style={{ 
-                fontSize: '1.2rem', 
-                fontWeight: 'bold', 
-                color: 'var(--accent-brown)',
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}>
-                <Upload size={20} />
-                Custom Background
-              </h3>
+            {/* Top Section: Background Upload and Color Preview */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+              gap: '2rem',
+              marginBottom: '2rem' 
+            }}>
+              {/* Background Image Section */}
+              <section>
+                <h3 style={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: 'bold', 
+                  color: 'var(--accent-brown)',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}>
+                  <Upload size={20} />
+                  Custom Background
+                </h3>
 
               <div className="translucent-card" style={{ padding: '1.5rem' }}>
                 {(backgroundImage || previewImage) ? (
@@ -249,7 +264,51 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
                   </div>
                 )}
               </div>
-            </section>
+              </section>
+
+              {/* Color Preview Section */}
+              <section>
+                <h3 style={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: 'bold', 
+                  color: 'var(--accent-brown)',
+                  marginBottom: '1rem',
+                }}>
+                  Current Colors
+                </h3>
+
+                <div className="translucent-card" style={{ padding: '1rem' }}>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gap: '0.75rem',
+                  }}>
+                    {[
+                      { name: 'Primary', var: '--primary-beige' },
+                      { name: 'Accent', var: '--accent-brown' },
+                      { name: 'Green', var: '--farm-green' },
+                      { name: 'Brown', var: '--light-brown' },
+                      { name: 'Red', var: '--barn-red' },
+                      { name: 'Gold', var: '--wheat-gold' },
+                    ].map((color) => (
+                      <div key={color.name} style={{ textAlign: 'center' }}>
+                        <div style={{
+                          width: '100%',
+                          height: '40px',
+                          background: `var(${color.var})`,
+                          borderRadius: '8px',
+                          border: '2px solid var(--light-brown)',
+                          marginBottom: '0.25rem',
+                        }} />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--dark-brown)' }}>
+                          {color.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
 
             {/* Theme Presets Section */}
             <section style={{ marginBottom: '2rem' }}>
@@ -266,14 +325,18 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
                 Theme Presets
               </h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+                gap: '1rem' 
+              }}>
                 {themePresets.map((preset) => (
                   <button
                     key={preset.name}
                     onClick={() => handleThemeSelect(preset.name)}
                     className="translucent-card"
                     style={{
-                      padding: '1rem',
+                      padding: '1.5rem',
                       cursor: 'pointer',
                       border: currentTheme === preset.name 
                         ? '3px solid var(--farm-green)' 
@@ -282,68 +345,30 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
                         ? 'rgba(154, 205, 50, 0.15)'
                         : 'rgba(244, 241, 232, 0.9)',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
                       transition: 'all 0.2s ease',
+                      position: 'relative',
+                      minHeight: '120px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ fontSize: '1.5rem' }}>{preset.icon}</span>
-                      <span style={{ 
-                        fontWeight: currentTheme === preset.name ? 'bold' : '600',
-                        color: 'var(--accent-brown)',
-                      }}>
-                        {preset.name}
-                      </span>
-                    </div>
                     {currentTheme === preset.name && (
-                      <Check size={20} color="var(--farm-green)" />
+                      <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                        <Check size={20} color="var(--farm-green)" />
+                      </div>
                     )}
+                    <span style={{ fontSize: '2.5rem' }}>{preset.icon}</span>
+                    <span style={{ 
+                      fontWeight: currentTheme === preset.name ? 'bold' : '600',
+                      color: 'var(--accent-brown)',
+                      textAlign: 'center',
+                    }}>
+                      {preset.name}
+                    </span>
                   </button>
                 ))}
-              </div>
-            </section>
-
-            {/* Color Preview */}
-            <section style={{ marginBottom: '2rem' }}>
-              <h3 style={{ 
-                fontSize: '1.2rem', 
-                fontWeight: 'bold', 
-                color: 'var(--accent-brown)',
-                marginBottom: '1rem',
-              }}>
-                Current Colors
-              </h3>
-
-              <div className="translucent-card" style={{ padding: '1rem' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '0.75rem',
-                }}>
-                  {[
-                    { name: 'Primary', var: '--primary-beige' },
-                    { name: 'Accent', var: '--accent-brown' },
-                    { name: 'Green', var: '--farm-green' },
-                    { name: 'Brown', var: '--light-brown' },
-                    { name: 'Red', var: '--barn-red' },
-                    { name: 'Gold', var: '--wheat-gold' },
-                  ].map((color) => (
-                    <div key={color.name} style={{ textAlign: 'center' }}>
-                      <div style={{
-                        width: '100%',
-                        height: '40px',
-                        background: `var(${color.var})`,
-                        borderRadius: '8px',
-                        border: '2px solid var(--light-brown)',
-                        marginBottom: '0.25rem',
-                      }} />
-                      <span style={{ fontSize: '0.75rem', color: 'var(--dark-brown)' }}>
-                        {color.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </section>
 
