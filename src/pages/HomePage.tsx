@@ -584,6 +584,91 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Floating Chat Bot */}
+      <Link to="/tips">
+        <motion.div
+          style={{
+            position: 'fixed',
+            bottom: '30px',
+            right: '30px',
+            zIndex: 1000,
+            cursor: 'pointer',
+          }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5, type: "spring" }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          {/* Chat bubble with message */}
+          <motion.div
+            style={{
+              position: 'absolute',
+              bottom: '80px',
+              right: '0',
+              background: 'white',
+              padding: '12px 16px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              whiteSpace: 'nowrap',
+              border: '2px solid var(--farm-green)',
+            }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.3 }}
+          >
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '600',
+              color: 'var(--accent-brown)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Lightbulb size={18} color="var(--wheat-gold)" />
+              Need guidance? 💡
+            </div>
+            {/* Speech bubble arrow */}
+            <div style={{
+              position: 'absolute',
+              bottom: '-8px',
+              right: '20px',
+              width: '0',
+              height: '0',
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderTop: '8px solid white',
+            }}></div>
+          </motion.div>
+
+          {/* Bot icon */}
+          <motion.div
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--farm-green) 0%, var(--wheat-gold) 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '30px',
+              boxShadow: '0 4px 20px rgba(154, 205, 50, 0.4)',
+              border: '3px solid white',
+            }}
+            animate={{ 
+              y: [0, -10, 0],
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            🤖
+          </motion.div>
+        </motion.div>
+      </Link>
+
       {/* Footer */}
       <footer style={{
         background: 'rgba(139, 69, 19, 0.1)',
