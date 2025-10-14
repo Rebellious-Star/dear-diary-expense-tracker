@@ -93,6 +93,7 @@ const ExpenseTrackerPage: React.FC = () => {
 
   // Filter expenses based on search and filter criteria
   useEffect(() => {
+    console.log('🔍 Filtering expenses. Total:', expenses.length, 'Filters:', { searchTerm, filterCategory, filterType });
     let filtered = expenses;
 
     if (searchTerm) {
@@ -110,6 +111,7 @@ const ExpenseTrackerPage: React.FC = () => {
       filtered = filtered.filter(expense => expense.type === filterType);
     }
 
+    console.log('✅ Filtered expenses:', filtered.length);
     setFilteredExpenses(filtered);
   }, [expenses, searchTerm, filterCategory, filterType]);
 
@@ -127,14 +129,15 @@ const ExpenseTrackerPage: React.FC = () => {
       
       // Optimistic update: Add the new expense immediately to UI
       const newExpenseWithId = postRes.data;
-      setExpenses(prev => [newExpenseWithId, ...prev]);
+      console.log('💾 Adding expense to state:', newExpenseWithId);
+      setExpenses(prev => {
+        const updated = [newExpenseWithId, ...prev];
+        console.log('📊 Updated expenses array length:', updated.length);
+        return updated;
+      });
       toast.success(`${expense.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
       
-      // Background refresh to ensure sync (no await, happens in background)
-      api.get('/expenses').then(res => {
-        console.log('📥 Background refresh:', res.data.length, 'expenses');
-        setExpenses(res.data || []);
-      }).catch(err => console.error('Background refresh failed:', err));
+      // No background refresh - trust the optimistic update
       
       // Update simple streaks (one transaction per day)
       try {
@@ -262,6 +265,9 @@ const ExpenseTrackerPage: React.FC = () => {
   };
 
   const handleDeleteExpense = async (id: string) => {
+    // Store the expense in case we need to revert
+    const expenseToDelete = expenses.find(e => e.id === id);
+    
     try {
       // Optimistic update: Remove from UI immediately
       setExpenses(prev => prev.filter(expense => expense.id !== id));
@@ -270,15 +276,17 @@ const ExpenseTrackerPage: React.FC = () => {
       // Delete from backend
       await api.delete(`/expenses/${id}`);
       
-      // Background refresh to ensure sync
-      api.get('/expenses').then(res => {
-        setExpenses(res.data || []);
-      }).catch(err => console.error('Background refresh failed:', err));
+      // No background refresh - trust the optimistic update
     } catch (err) {
       console.error('Failed to delete expense:', err);
       toast.error('Failed to delete expense. Please try again.');
-      // Revert optimistic update by fetching from backend
-      api.get('/expenses').then(res => setExpenses(res.data || []));
+      
+      // Revert optimistic update by adding the expense back
+      if (expenseToDelete) {
+        setExpenses(prev => [expenseToDelete, ...prev].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        ));
+      }
     }
   };
 

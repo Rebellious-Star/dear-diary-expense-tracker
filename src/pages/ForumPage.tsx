@@ -300,13 +300,12 @@ const ForumPage: React.FC = () => {
       // Post to backend
       await api.post('/forum/posts', payload);
       
-      // Background refresh
-      api.get('/forum/posts').then(res => setPosts(res.data || [])).catch(err => console.error('Refresh failed:', err));
+      // No background refresh - trust optimistic update
     } catch (err) {
       console.error('Failed to add post:', err);
       toast.error('Failed to add post. Please try again.');
-      // Revert optimistic update
-      api.get('/forum/posts').then(res => setPosts(res.data || []));
+      // Revert optimistic update by removing the post
+      setPosts(prev => prev.filter(p => p.id !== optimisticPost.id));
     }
   };
 
@@ -364,13 +363,14 @@ const ForumPage: React.FC = () => {
       // Post to backend
       await api.post(`/forum/posts/${postId}/replies`, payload);
       
-      // Background refresh
-      api.get('/forum/posts').then(res => setPosts(res.data || [])).catch(err => console.error('Refresh failed:', err));
+      // No background refresh - trust optimistic update
     } catch (err) {
       console.error('Failed to add reply:', err);
       toast.error('Failed to add reply. Please try again.');
-      // Revert optimistic update
-      api.get('/forum/posts').then(res => setPosts(res.data || []));
+      // Revert optimistic update by removing the reply
+      setPosts(prev => prev.map(p => 
+        p.id === postId ? { ...p, replies: p.replies.filter(r => r.id !== optimisticReply.id) } : p
+      ));
     }
   };
 
