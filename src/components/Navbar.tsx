@@ -15,7 +15,6 @@ const Navbar: React.FC = () => {
     { path: '/tips', label: 'Tips', icon: Lightbulb },
     { path: '/themes', label: 'Themes', icon: Palette },
     { path: '/settings', label: 'Settings', icon: Settings },
-    { path: '/contact', label: 'Contact', icon: Mail },
   ];
 
   const toggleTheme = () => {
@@ -57,8 +56,8 @@ const Navbar: React.FC = () => {
           </Link>
         </motion.div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -76,16 +75,17 @@ const Navbar: React.FC = () => {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem',
+                      gap: '0.4rem',
                       textDecoration: 'none',
-                      padding: '0.5rem 1rem',
+                      padding: '0.5rem 0.75rem',
                       borderRadius: '20px',
                       transition: 'all 0.3s ease',
                       background: isActive ? 'var(--farm-green)' : 'transparent',
                       color: isActive ? 'white' : 'var(--accent-brown)',
+                      fontSize: '0.95rem',
                     }}
                   >
-                    <Icon size={18} />
+                    <Icon size={16} />
                     {item.label}
                   </Link>
                 </motion.div>
@@ -117,16 +117,16 @@ const Navbar: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
-              style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
             >
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '0.5rem',
+                gap: '0.4rem',
                 color: 'var(--accent-brown)',
-                fontSize: '0.9rem'
+                fontSize: '0.85rem'
               }}>
-                <User size={16} />
+                <User size={14} />
                 <span>{user.username}</span>
               </div>
               <button
@@ -135,12 +135,12 @@ const Navbar: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.9rem'
+                  gap: '0.4rem',
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.85rem'
                 }}
               >
-                <LogOut size={16} />
+                <LogOut size={14} />
                 Logout
               </button>
             </motion.div>
