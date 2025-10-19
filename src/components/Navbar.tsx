@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, DollarSign, MessageSquare, Lightbulb, Mail, LogOut, User, Moon, Sun, Palette } from 'lucide-react';
+import { Home, DollarSign, MessageSquare, Lightbulb, Mail, LogOut, User, Moon, Sun, Palette, Settings } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -14,6 +14,7 @@ const Navbar: React.FC = () => {
     { path: '/forum', label: 'Forum', icon: MessageSquare },
     { path: '/tips', label: 'Tips', icon: Lightbulb },
     { path: '/themes', label: 'Themes', icon: Palette },
+    { path: '/settings', label: 'Settings', icon: Settings },
     { path: '/contact', label: 'Contact', icon: Mail },
   ];
 

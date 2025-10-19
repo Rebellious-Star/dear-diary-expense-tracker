@@ -8,6 +8,7 @@ import ForumPage from './pages/ForumPage';
 import TipsPage from './pages/TipsPage';
 import ContactPage from './pages/ContactPage';
 import ThemePage from './pages/ThemePage';
+import SettingsPage from './pages/SettingsPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -72,6 +73,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             } 
           />
