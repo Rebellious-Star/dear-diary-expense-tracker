@@ -95,8 +95,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const res = await api.post('/auth/login', { email, password });
-      const { token, user: u } = res.data;
-      setAuthToken(token);
+      const { token, refreshToken, user: u } = res.data;
+      setAuthToken(token, refreshToken);
       const signedIn: User = { 
         id: u.id, 
         email: u.email, 
@@ -327,7 +327,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setAuthToken(undefined);
-    localStorage.removeItem('userData');
+    try {
+      localStorage.removeItem('userData');
+      localStorage.removeItem('apiToken');
+      localStorage.removeItem('refreshToken');
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+    }
     // Clear forum-related state to prevent cross-account contamination
     localStorage.removeItem('bannedUsers');
     localStorage.removeItem('userWarnings');
