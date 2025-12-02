@@ -28,7 +28,6 @@ const AdminPage: React.FC = () => {
     try {
       await api.post('/forum/moderation/unban', { username });
       
-      // Small delay to ensure backend processes the unban
       await new Promise(resolve => setTimeout(resolve, 200));
       
       const u = await api.get('/auth/users');
